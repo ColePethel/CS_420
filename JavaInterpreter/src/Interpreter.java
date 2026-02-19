@@ -65,12 +65,15 @@ public class Interpreter {
 	 * to turn the String into an int.
 	 */
 	public Object convertNameToInstance(String name){
+		// return stored object if in symbol table
 		if (mySymbolTable.containsKey(name)) {
 			return mySymbolTable.get(name);
 		}
+		// string literal if starts with quotation
 		if (name.startsWith("\"") && name.endsWith("\"")) {
 			return name.substring(1, name.length() - 1);
 		}
+		// int literal
 		return Integer.parseInt(name);
 	}
 	
@@ -125,6 +128,7 @@ public class Interpreter {
 
 			Object result = ReflectionUtilities.callMethod(targetObject, parse.methodName, args);
 
+			// store what method returns
 			if (result != null) {
 				if (parse.answerName != null) {
 					mySymbolTable.put(parse.answerName, result);

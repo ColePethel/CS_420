@@ -41,14 +41,17 @@ public class ReflectionUtilities {
 			Class<?> formal = formals[i];
 			Object actual = actuals[i];
 
+			// handle null
 			if (actual == null) {
 				if (formal.isPrimitive()) {
 					return false;
 				}
 			}
+			// handle ints
 			else if (typesMatchInts(formal, actual)) {
 				continue;
 			}
+			// normal objects
 			else if (!formal.isInstance(actual)) {
 				return false;
 			}
@@ -115,6 +118,7 @@ public class ReflectionUtilities {
 				if (typesMatch(formals, args)) {
 					Object result = method.invoke(target, args);
 
+					// returns null if return type is void
 					if (method.getReturnType() == void.class) {
 						return null;
 					}
