@@ -65,7 +65,13 @@ public class Interpreter {
 	 * to turn the String into an int.
 	 */
 	public Object convertNameToInstance(String name){
-		return null;
+		if (mySymbolTable.containsKey(name)) {
+			return mySymbolTable.get(name);
+		}
+		if (name.startsWith("\"") && name.endsWith("\"")) {
+			return name.substring(1, name.length() - 1);
+		}
+		return Integer.parseInt(name);
 	}
 	
 	
@@ -74,7 +80,11 @@ public class Interpreter {
 	 * Simply call the other helper method of the same name on each item in the array.
 	 */
 	public Object[] convertNameToInstance(String[] names){
-		return null;
+		Object[] objects = new Object[names.length];
+		for (int i = 0; i < names.length; i++) {
+			objects[i] = convertNameToInstance(names[i]);
+		}
+		return objects;
 	}
 	
 	
@@ -84,7 +94,17 @@ public class Interpreter {
 	 * The String that is returned should be a basic message telling what happened.
 	 */
 	public String makeObject(ParseResults parse){		
-		return "oops.";
+		try {
+			Object[] args = convertNameToInstance(parse.arguments);
+
+			Object newObject = ReflectionUtilities.createInstance(parse.className, args);
+
+			mySymbolTable.put(parse.objectName, newObject);
+
+			return "Created " + parse.objectName + " as a new " + parse.className;
+		} catch (Exception e) {
+			return "Error creating object: " + e.getMessage();
+		}
 	}
 	
 	/*
@@ -99,7 +119,23 @@ public class Interpreter {
 	 * and replacing it with something else.
 	 */
 	public String callMethod(ParseResults parse){
-		return "oops.";
+		try {
+			Object targetObject = mySymbolTable.get(parse.objectName);
+			Object[] args = convertNameToInstance(parse.arguments);
+
+			Object result = ReflectionUtilities.callMethod(targetObject, parse.methodName, args);
+
+			if (result != null) {
+				if (parse.answerName != null) {
+					mySymbolTable.put(parse.answerName, result);
+					return "Stored result in " + parse.answerName;
+				}
+			}
+
+			return "Called method " + parse.methodName + " on " + parse.objectName;
+		} catch (Exception e) {
+			return "Error calling method: " + e.getMessage();
+		}
 	}
 
 }

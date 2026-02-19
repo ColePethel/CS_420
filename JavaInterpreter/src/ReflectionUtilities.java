@@ -1,5 +1,5 @@
 /*
- * Shannon Duvall and <You>
+ * Shannon Duvall, Jack Irby, and Cole Pethel
  * This object does basic reflection functions
  */
 import java.lang.reflect.*;
@@ -34,7 +34,26 @@ public class ReflectionUtilities {
 	 */
 	public static boolean typesMatch (Class<?>[] formals, Object[] actuals)
 	{
-		return false;
+		if (formals.length != actuals.length) {
+			return false;
+		}
+		for (int i = 0; i < formals.length; i++) {
+			Class<?> formal = formals[i];
+			Object actual = actuals[i];
+
+			if (actual == null) {
+				if (formal.isPrimitive()) {
+					return false;
+				}
+			}
+			else if (typesMatchInts(formal, actual)) {
+				continue;
+			}
+			else if (!formal.isInstance(actual)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	
@@ -49,7 +68,22 @@ public class ReflectionUtilities {
 	 */
 	public static Object createInstance (String name, Object[] args)
 	{
-		return null;
+		try {
+			Class<?> clazz = Class.forName(name);
+			Constructor<?>[] constructors = clazz.getConstructors();
+
+			for (Constructor<?> constructor : constructors) {
+				Class<?>[] formals = constructor.getParameterTypes();
+
+				if (typesMatch(formals, args)) {
+					return constructor.newInstance(args);
+				}
+			}
+
+			throw new RuntimeException("No matching constructor found.");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	/*
@@ -67,7 +101,32 @@ public class ReflectionUtilities {
 	 */
 	public static Object callMethod (Object target, String name, Object[] args)
 	{
-		return null;
+		try {
+			Class<?> clazz = target.getClass();
+			Method[] methods = clazz.getMethods();
+
+			for (Method method : methods) {
+				if (!method.getName().equals(name)) {
+					continue;
+				}
+
+				Class<?>[] formals = method.getParameterTypes();
+
+				if (typesMatch(formals, args)) {
+					Object result = method.invoke(target, args);
+
+					if (method.getReturnType() == void.class) {
+						return null;
+					}
+
+					return result;
+				}
+			}
+
+			throw new RuntimeException("No matching method found.");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 }
